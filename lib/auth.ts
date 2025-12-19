@@ -1,24 +1,45 @@
-import jwt from "jsonwebtoken";
+import jwt, {
+  JsonWebTokenError,
+  TokenExpiredError,
+} from "jsonwebtoken";
 
 export type AuthPayload = {
   sub: string;
   role: string;
 };
 
-export function getUserFromToken(req: Request): AuthPayload {
+/**
+ * Verify access token from Authorization header
+ * Throws typed errors for route handlers to catch
+ */
+export function verifyAccessToken(req: Request): AuthPayload {
   const authHeader = req.headers.get("authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("Unauthorized");
+    throw new Error("TOKEN_MISSING");
   }
-console.log(
-    "PROFILE API - ACCESS SECRET LENGTH",
-    process.env.JWT_ACCESS_SECRET?.length
-  );
+
   const token = authHeader.split(" ")[1];
 
-  return jwt.verify(
-    token,
-    process.env.JWT_ACCESS_SECRET!
-  ) as AuthPayload;
+  try {
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_ACCESS_SECRET!
+    ) as any;
+
+    return {
+      sub: payload.sub,
+      role: payload.role,
+    };
+  } catch (err) {
+    if (err instanceof TokenExpiredError) {
+      throw new Error("TOKEN_EXPIRED");
+    }
+
+    if (err instanceof JsonWebTokenError) {
+      throw new Error("TOKEN_INVALID");
+    }
+
+    throw new Error("TOKEN_ERROR");
+  }
 }

@@ -88,7 +88,7 @@ model Address {
   id          String   @id @default(cuid())
   userId      String
 
-  label       String
+  label       String    
   addressLine String
   city        String
   state       String
@@ -103,4 +103,8 @@ model Address {
 
   @@index([userId])
   @@map("addresses")
+
+  // ✅ Composite Unique Constraint (IMPORTANT)
+  @@unique([userId, addressLine, city, postalCode])
+
 }
