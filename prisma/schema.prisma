@@ -27,6 +27,18 @@ enum AccountStatus {
   SUSPENDED
   DELETED
 }
+
+enum PetStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PetGender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
 //////////////////////////////////////////////////////
 // USER
 //////////////////////////////////////////////////////
@@ -42,6 +54,7 @@ model User {
   addresses     Address[]
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  pets          Pet[]
 
 
   createdAt     DateTime      @default(now())
@@ -107,4 +120,33 @@ model Address {
   // ✅ Composite Unique Constraint (IMPORTANT)
   @@unique([userId, addressLine, city, postalCode])
 
+}
+//////////////////////////////////////////////////////
+// PET
+//////////////////////////////////////////////////////
+model Pet {
+  id        String   @id @default(cuid())
+
+  // Basic details
+  name      String
+  species   String   @default("Dog")        // Dog, Cat, etc.
+  breed     String?
+  gender    PetGender?
+  age       Int?
+  weightKg Float?
+  notes     String?
+
+  // Ownership
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Status
+  status    PetStatus @default(ACTIVE)
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([ownerId])
+  @@map("pets")
 }

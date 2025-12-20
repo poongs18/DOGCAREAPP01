@@ -153,7 +153,7 @@ export async function POST(req: Request) {
        6. Success response
     ---------------------------------------------------- */
     return NextResponse.json(
-      { message: "Address added", address },
+      { message: "Address added successfully", address },
       { status: 201 }
     );
 
