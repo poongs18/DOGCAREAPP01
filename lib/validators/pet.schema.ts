@@ -5,7 +5,9 @@ export const createPetSchema = z.object({
   species: z.string().min(1, "Species is required"),
   breed: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE", "UNKNOWN"]).optional(),
-  age: z.number().int().positive().optional(),
+  age: z.number().positive().optional(),
   weightKg: z.number().positive().optional(),
   notes: z.string().optional(),
 });
+
+export const updatePetSchema = createPetSchema.partial();

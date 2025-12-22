@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
     if (auth.role !== Role.CUSTOMER) {
       return NextResponse.json(
-        { message: "Only customers can view pets" },
+        { message: "Only customers can view their pets" },
         { status: 403 }
       );
     }

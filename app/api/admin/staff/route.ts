@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, email, password, role } = parsed.data;
+    const { name, email, password, phone, role } = parsed.data;
 
     /* --------------------------------
        3. BUSINESS RULES
@@ -62,6 +62,7 @@ export async function POST(req: Request) {
         name,
         email,
         passwordHash: hashedPassword,
+        phone,
         role,
         status: AccountStatus.ACTIVE,
       },

@@ -132,8 +132,8 @@ model Pet {
   species   String   @default("Dog")        // Dog, Cat, etc.
   breed     String?
   gender    PetGender?
-  age       Int?
-  weightKg Float?
+  age       Float?
+  weightKg  Float?
   notes     String?
 
   // Ownership
@@ -149,4 +149,34 @@ model Pet {
 
   @@index([ownerId])
   @@map("pets")
+}
+//////////////////////////////////////////////////////
+// SERVICES
+//////////////////////////////////////////////////////
+model Service {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  description   String?
+  price         Float
+  durationMin   Int
+
+  type          ServiceType   // 👈 IMPORTANT
+  status        ServiceStatus @default(ACTIVE)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@map("services")
+}
+
+enum ServiceType {
+  OPERATIONAL   // Grooming, Swimming, Training
+  MEDICAL       // Vaccination, Consultation
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
 }
