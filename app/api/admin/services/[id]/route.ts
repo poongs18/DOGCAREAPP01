@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
 import { Role } from "@prisma/client";
 import { updateServiceSchema } from "@/lib/validators/service.schema";
 
 export async function PUT(
-  req: Request,
-  context: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     /* -----------------------------
