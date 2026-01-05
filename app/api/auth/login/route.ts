@@ -3,10 +3,10 @@ import bcrypt from "bcryptjs";
 import jwt, { Secret } from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import pino from "pino";
 import { serialize } from "cookie";
 
-const logger = pino({ level: "info" });
+const logger = console;
+
 
 const loginSchema = z.object({
   email: z.string().email(),

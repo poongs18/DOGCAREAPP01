@@ -3,9 +3,8 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
-import pino from "pino";
+const logger = console;
 
-const logger = pino({ level: "info" });
 
 const schema = z.object({
   oldPassword: z.string(),

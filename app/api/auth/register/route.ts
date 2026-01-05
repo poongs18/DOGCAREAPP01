@@ -3,10 +3,10 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import sanitizeHtml from "sanitize-html";
-import pino from "pino";
 import { Prisma } from "@prisma/client";
 
-const logger = pino({ level: "info" });
+const logger = console;
+
 
 /**
  * Validation schema

@@ -3,9 +3,8 @@ import jwt from "jsonwebtoken";
 import type { Secret, JwtPayload } from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { parse } from "cookie";
-import pino from "pino";
+const logger = console;
 
-const logger = pino({ level: "info" });
 
 // Strongly typed secrets (same pattern as login)
 const accessSecret: Secret = process.env.JWT_ACCESS_SECRET as string;

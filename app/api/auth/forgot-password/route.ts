@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import crypto from "crypto";
-import pino from "pino";
+const logger = console;
 
-const logger = pino({ level: "info" });
 
 const schema = z.object({
   email: z.string().email(),

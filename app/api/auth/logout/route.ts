@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parse, serialize } from "cookie";
-import pino from "pino";
+const logger = console;
 
-const logger = pino({ level: "info" });
 
 export async function POST(req: Request) {
   try {

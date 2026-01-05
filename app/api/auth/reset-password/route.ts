@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import pino from "pino";
-
-const logger = pino({ level: "info" });
+const logger = console;
 
 const schema = z.object({
   token: z.string(),
