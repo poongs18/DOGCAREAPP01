@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
-import { Role } from "@/lib/rbac";
+import { Role } from "@prisma/client";
 
 export async function PATCH(
   req: Request,

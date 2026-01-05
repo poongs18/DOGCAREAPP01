@@ -10,8 +10,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("POSTGRES_URL")
 }
+
 //////////////////////////////////////////////////////
 // ENUMS
 //////////////////////////////////////////////////////
@@ -39,26 +40,55 @@ enum PetGender {
   UNKNOWN
 }
 
+enum BookingStatus {
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
+
+enum PickupOption {
+  NONE
+  PICKUP_ONLY
+  DROP_ONLY
+  PICKUP_AND_DROP
+}
+
+enum ServiceType {
+  OPERATIONAL // Grooming, Swimming, Training
+  MEDICAL // Vaccination, Consultation
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SlotStatus {
+  ACTIVE
+  INACTIVE
+}
+
 //////////////////////////////////////////////////////
 // USER
 //////////////////////////////////////////////////////
 model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  phone         String?       @unique
-  name          String
-  passwordHash  String
-  role          Role          @default(CUSTOMER)
-  status        AccountStatus @default(ACTIVE)
+  id           String        @id @default(cuid())
+  email        String        @unique
+  phone        String?       @unique
+  name         String
+  passwordHash String
+  role         Role          @default(CUSTOMER)
+  status       AccountStatus @default(ACTIVE)
 
-  addresses     Address[]
-  refreshTokens RefreshToken[]
+  addresses           Address[]
+  refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
-  pets          Pet[]
+  pets                Pet[]
 
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Booking   Booking[]
+  Slot      Slot[]
 
   @@index([role])
   @@index([status])
@@ -66,117 +96,170 @@ model User {
 }
 
 model RefreshToken {
-  id         String   @id @default(cuid())
-  userId     String
-  token      String   @unique
-  expiresAt  DateTime
-  revoked    Boolean  @default(false)
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@map("refresh_tokens")
 }
 
 model PasswordResetToken {
-  id         String   @id @default(cuid())
-  userId     String
-  token      String   @unique
-  expiresAt  DateTime
-  used       Boolean  @default(false)
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@map("password_reset_tokens")
 }
+
 //////////////////////////////////////////////////////
 // ADDRESS
 //////////////////////////////////////////////////////
 model Address {
-  id          String   @id @default(cuid())
-  userId      String
+  id     String @id @default(cuid())
+  userId String
 
-  label       String    
+  label       String
   addressLine String
   city        String
   state       String
   postalCode  String
-  country     String   @default("India")
-  isDefault   Boolean  @default(false)
+  country     String  @default("India")
+  isDefault   Boolean @default(false)
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@map("addresses")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // ✅ Composite Unique Constraint (IMPORTANT)
   @@unique([userId, addressLine, city, postalCode])
-
+  @@index([userId])
+  @@map("addresses")
 }
+
 //////////////////////////////////////////////////////
 // PET
 //////////////////////////////////////////////////////
 model Pet {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // Basic details
-  name      String
-  species   String   @default("Dog")        // Dog, Cat, etc.
-  breed     String?
-  gender    PetGender?
-  age       Float?
-  weightKg  Float?
-  notes     String?
+  name     String
+  species  String     @default("Dog") // Dog, Cat, etc.
+  breed    String?
+  gender   PetGender?
+  age      Float?
+  weightKg Float?
+  notes    String?
 
   // Ownership
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // Status
-  status    PetStatus @default(ACTIVE)
+  status PetStatus @default(ACTIVE)
 
   // Timestamps
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  Booking   Booking[]
 
   @@index([ownerId])
   @@map("pets")
 }
+
 //////////////////////////////////////////////////////
 // SERVICES
 //////////////////////////////////////////////////////
 model Service {
-  id            String        @id @default(cuid())
-  name          String        @unique
-  description   String?
-  price         Float
-  durationMin   Int
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  price       Float
+  durationMin Int
 
-  type          ServiceType   // 👈 IMPORTANT
-  status        ServiceStatus @default(ACTIVE)
+  type   ServiceType // 👈 IMPORTANT
+  status ServiceStatus @default(ACTIVE)
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Booking   Booking[]
+  Slot      Slot[]
 
   @@index([type])
   @@index([status])
   @@map("services")
 }
 
-enum ServiceType {
-  OPERATIONAL   // Grooming, Swimming, Training
-  MEDICAL       // Vaccination, Consultation
+//////////////////////////////////////////////////////
+// SERVICES BOOKING
+//////////////////////////////////////////////////////
+model Booking {
+  id String @id @default(cuid())
+
+  userId    String
+  petId     String
+  serviceId String
+  slotId    String
+
+  bookingDate DateTime
+  startTime   DateTime
+  endTime     DateTime
+
+  pickupOption PickupOption
+  notes        String?
+
+  status BookingStatus @default(BOOKED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  pet     Pet     @relation(fields: [petId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+  slot    Slot    @relation(fields: [slotId], references: [id])
+
+  @@index([userId])
+  @@index([petId])
+  @@index([serviceId])
+  @@index([slotId])
 }
 
-enum ServiceStatus {
-  ACTIVE
-  INACTIVE
+//////////////////////////////////////////////////////
+// SLOTS
+//////////////////////////////////////////////////////
+model Slot {
+  id String @id @default(cuid())
+
+  serviceId String
+  staffId   String?
+
+  startTime DateTime
+  endTime   DateTime
+  capacity  Int
+
+  status SlotStatus @default(ACTIVE)
+
+  service Service @relation(fields: [serviceId], references: [id])
+  staff   User?   @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Booking   Booking[]
+
+  @@index([serviceId])
 }

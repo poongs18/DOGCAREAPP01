@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
-import { Role } from "@/lib/rbac";
+import { Role } from "@prisma/client";
 import { updateServiceSchema } from "@/lib/validators/service.schema";
 
 export async function PUT(
@@ -24,7 +24,7 @@ export async function PUT(
     /* -----------------------------
        2. PARAM
     ----------------------------- */
-    const serviceId = context.params?.id;
+    const { id: serviceId } = await context.params;
 
     if (!serviceId) {
       return NextResponse.json(

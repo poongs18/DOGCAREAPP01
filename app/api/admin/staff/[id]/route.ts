@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
-import { Role } from "@/lib/rbac";
-import { AccountStatus } from "@prisma/client";
+import { Role, AccountStatus } from "@prisma/client";
 
 export async function GET(
   req: Request,

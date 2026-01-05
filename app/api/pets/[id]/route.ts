@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
-import { Role } from "@/lib/rbac";
 import { updatePetSchema } from "@/lib/validators/pet.schema";
-import { PetStatus } from "@prisma/client";
+import { Role, PetStatus } from "@prisma/client";
 
 export async function GET(
   req: Request,

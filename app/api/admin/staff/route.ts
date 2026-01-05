@@ -3,9 +3,8 @@ import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
-import { Role } from "@/lib/rbac";
 import { createStaffSchema } from "@/lib/validators/admin-user.schema";
-import { AccountStatus } from "@prisma/client";
+import { Role, AccountStatus } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
