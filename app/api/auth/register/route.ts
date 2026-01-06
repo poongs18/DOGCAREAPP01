@@ -14,8 +14,10 @@ const logger = console;
 const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
-  password: z.string().min(8),
-  phone: z.string().optional(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters"),
+  phone: z.string().min(10, "Phone number is required"),
 });
 
 export async function POST(req: Request) {
