@@ -17,7 +17,7 @@ const registerSchema = z.object({
   password: z
     .string()
     .min(8, "Password must be at least 8 characters"),
-  phone: z.string().min(10, "Phone number is required"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
 });
 
 export async function POST(req: Request) {
