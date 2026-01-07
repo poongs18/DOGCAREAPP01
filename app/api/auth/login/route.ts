@@ -4,6 +4,7 @@ import jwt, { Secret } from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { serialize } from "cookie";
+import { withCors } from "@/lib/cors";
 
 const logger = console;
 
@@ -24,9 +25,8 @@ export async function POST(req: Request) {
     // 1. Validate request
     const parsed = loginSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 400 }
+      return withCors(
+        NextResponse.json({ error: "Invalid email or password" }, { status: 400 })
       );
     }
 
@@ -38,59 +38,60 @@ export async function POST(req: Request) {
     });
 
     if (!user || user.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
+      return withCors(
+        NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       );
     }
 
     // 3. Verify password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
+      return withCors(
+        NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       );
     }
-console.log("ACCESS SECRET LENGTH", process.env.JWT_ACCESS_SECRET?.length);
 
-    // Generate access token
-const accessToken = jwt.sign(
-  { sub: user.id, role: user.role },
-  accessSecret,
-  { expiresIn: "15m" }
-);
+    // 4. Generate access token
+    const accessToken = jwt.sign(
+      {
+        sub: user.id,
+        role: user.role,
+        aud: "dogcare-client",
+        iss: "dogcare-api",
+      },
+      accessSecret,
+      { expiresIn: "15m" }
+    );
 
-// Generate refresh token
-const refreshToken = jwt.sign(
-  { sub: user.id },
-  refreshSecret,
-  { expiresIn: "7d" }
-);
+    // 5. Generate refresh token
+    const refreshToken = jwt.sign(
+      {
+        sub: user.id,
+        aud: "dogcare-client",
+        iss: "dogcare-api",
+      },
+      refreshSecret,
+      { expiresIn: "7d" }
+    );
 
-    // 6. Store refresh token in DB
+    // 6. Store refresh token
     await prisma.refreshToken.create({
       data: {
         userId: user.id,
         token: refreshToken,
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
-        ),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });
 
-    // 7. Set refresh token cookie (HTTP-only)
+    // 7. Secure refresh cookie
     const refreshCookie = serialize("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "lax", // change to "none" if frontend is on another domain
       path: "/",
-      maxAge: 7 * 24 * 60 * 60, // seconds
+      maxAge: 7 * 24 * 60 * 60,
     });
 
-    logger.info({ userId: user.id }, "User logged in");
-
-    // 8. Response
     const response = NextResponse.json(
       {
         message: "Login successful",
@@ -107,13 +108,13 @@ const refreshToken = jwt.sign(
 
     response.headers.set("Set-Cookie", refreshCookie);
 
-    return response;
+    return withCors(response);
   } catch (error) {
     logger.error(error, "Login failed");
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+    return withCors(
+      NextResponse.json({ error: "Internal server error" }, { status: 500 })
     );
   }
 }
+
