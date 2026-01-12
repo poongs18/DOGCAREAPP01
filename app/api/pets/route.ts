@@ -30,7 +30,6 @@ export async function GET(req: Request) {
       select: {
         id: true,
         name: true,
-        species: true,
         breed: true,
         gender: true,
         age: true,
@@ -117,7 +116,6 @@ export async function POST(req: Request) {
     const pet = await prisma.pet.create({
       data: {
         name,
-        species,
         breed,
         gender,
         age,
@@ -129,7 +127,6 @@ export async function POST(req: Request) {
       select: {
         id: true,
         name: true,
-        species: true,
         breed: true,
         gender: true,
         age: true,

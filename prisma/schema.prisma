@@ -46,13 +46,6 @@ enum BookingStatus {
   COMPLETED
 }
 
-enum PickupOption {
-  NONE
-  PICKUP_ONLY
-  DROP_ONLY
-  PICKUP_AND_DROP
-}
-
 enum ServiceType {
   OPERATIONAL // Grooming, Swimming, Training
   MEDICAL // Vaccination, Consultation
@@ -63,9 +56,11 @@ enum ServiceStatus {
   INACTIVE
 }
 
-enum SlotStatus {
-  ACTIVE
-  INACTIVE
+enum TransportOption {
+  NONE
+  PICKUP
+  DROP
+  BOTH
 }
 
 //////////////////////////////////////////////////////
@@ -88,7 +83,6 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Booking   Booking[]
-  Slot      Slot[]
 
   @@index([role])
   @@index([status])
@@ -159,7 +153,6 @@ model Pet {
 
   // Basic details
   name     String
-  species  String     @default("Dog") // Dog, Cat, etc.
   breed    String?
   gender   PetGender?
   age      Float?
@@ -186,80 +179,113 @@ model Pet {
 // SERVICES
 //////////////////////////////////////////////////////
 model Service {
-  id          String  @id @default(cuid())
-  name        String  @unique
-  description String?
-  price       Float
-  durationMin Int
+  id        String @id @default(cuid())
+  name      String @unique   // Grooming, Training, etc
+  type      ServiceType
+  status    ServiceStatus @default(ACTIVE)
 
-  type   ServiceType // 👈 IMPORTANT
-  status ServiceStatus @default(ACTIVE)
+  variants  ServiceVariant[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Booking   Booking[]
-  Slot      Slot[]
-
-  @@index([type])
-  @@index([status])
-  @@map("services")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //////////////////////////////////////////////////////
-// SERVICES BOOKING
+// SERVICE VARIANT
+//////////////////////////////////////////////////////
+model ServiceVariant {
+  id          String @id @default(cuid())
+  serviceId   String
+
+  name        String @unique // Custom Grooming, Paw-dicure, etc
+  description String?
+  price       Float
+  durationMin Int?          // optional, informational
+  isActive    Boolean @default(true)
+
+  service     Service  @relation(fields: [serviceId], references: [id])
+  bookings    Booking[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([serviceId])
+}
+
+//////////////////////////////////////////////////////
+// BOOKING
 //////////////////////////////////////////////////////
 model Booking {
-  id String @id @default(cuid())
+  id        String @id @default(cuid())
 
   userId    String
   petId     String
-  serviceId String
-  slotId    String
+
+  serviceVariantId String
 
   bookingDate DateTime
-  startTime   DateTime
-  endTime     DateTime
+  bookingTime DateTime
 
-  pickupOption PickupOption
-  notes        String?
+  transportOption TransportOption @default(NONE)
+
+  totalAmount Float
+  notes       String?
 
   status BookingStatus @default(BOOKED)
+
+  user    User           @relation(fields: [userId], references: [id])
+  pet     Pet            @relation(fields: [petId], references: [id])
+  variant ServiceVariant @relation(fields: [serviceVariantId], references: [id])
+
+  // ✅ ADD THESE 3 LINES
+  groomingDetails GroomingBookingDetails?
+  trainingDetails TrainingBookingDetails?
+  vetDetails      VetBookingDetails?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user    User    @relation(fields: [userId], references: [id])
-  pet     Pet     @relation(fields: [petId], references: [id])
-  service Service @relation(fields: [serviceId], references: [id])
-  slot    Slot    @relation(fields: [slotId], references: [id])
-
   @@index([userId])
   @@index([petId])
-  @@index([serviceId])
-  @@index([slotId])
+  @@index([serviceVariantId])
 }
 
 //////////////////////////////////////////////////////
-// SLOTS
+// GROOMING
 //////////////////////////////////////////////////////
-model Slot {
-  id String @id @default(cuid())
+model GroomingBookingDetails {
+  id        String @id @default(cuid())
+  bookingId String @unique
 
-  serviceId String
-  staffId   String?
+  groomingStyle   String?
+  coatCondition   String?
+  specialRequests String?
 
-  startTime DateTime
-  endTime   DateTime
-  capacity  Int
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+//////////////////////////////////////////////////////
+// TRAINING
+//////////////////////////////////////////////////////
+model TrainingBookingDetails {
+  id        String @id @default(cuid())
+  bookingId String @unique
 
-  status SlotStatus @default(ACTIVE)
+  trainingLevel String?
+  behaviorNotes String?
+  goals         String?
 
-  service Service @relation(fields: [serviceId], references: [id])
-  staff   User?   @relation(fields: [staffId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+//////////////////////////////////////////////////////
+// VET DETAILS
+//////////////////////////////////////////////////////
+model VetBookingDetails {
+  id        String @id @default(cuid())
+  bookingId String @unique
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Booking   Booking[]
+  symptoms        String?
+  previousIssues  String?
+  medications     String?
 
-  @@index([serviceId])
+  booking Booking @relation(fields: [bookingId], references: [id])
 }

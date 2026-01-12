@@ -10,9 +10,6 @@ export async function GET() {
       select: {
         id: true,
         name: true,
-        description: true,
-        price: true,
-        durationMin: true,
         type: true,
       },
       orderBy: {

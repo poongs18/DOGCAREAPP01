@@ -76,8 +76,7 @@ export async function PUT(
       select: {
         id: true,
         name: true,
-        price: true,
-        durationMin: true,
+        type: true,
         status: true,
         updatedAt: true,
       },
