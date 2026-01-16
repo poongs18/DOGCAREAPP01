@@ -11,20 +11,32 @@ export async function GET() {
         id: true,
         name: true,
         type: true,
+        variants: {
+          where: {
+            isActive: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            durationMin: true,
+          },
+          orderBy: {
+            price: "asc",
+          },
+        },
       },
       orderBy: {
         name: "asc",
       },
     });
 
+    return NextResponse.json({ services });
+  } catch (error) {
+    console.error("Get services error:", error);
     return NextResponse.json(
-      { services },
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error("Get services error:", err);
-    return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Failed to fetch services" },
       { status: 500 }
     );
   }
