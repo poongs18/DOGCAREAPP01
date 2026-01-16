@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
 
+/* ================================
+   GET /api/booking/[id]
+================================ */
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = verifyAccessToken(req);
     const userId = auth.sub;
 
-    const bookingId = params.id;
+    const { id: bookingId } = await context.params;
 
     const booking = await prisma.booking.findFirst({
       where: {
@@ -89,9 +92,6 @@ export async function GET(
       createdAt: booking.createdAt,
     };
 
-    /* -----------------------------
-       RESPONSE
-    ----------------------------- */
     return NextResponse.json(
       {
         message: "Booking fetched successfully",
@@ -126,26 +126,26 @@ export async function GET(
   }
 }
 
+/* ================================
+   DELETE /api/booking/[id]
+================================ */
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = verifyAccessToken(req);
     const userId = auth.sub;
 
-    const bookingId = params?.id;
+    const { id: bookingId } = await context.params;
 
-if (!bookingId) {
-  return NextResponse.json(
-    { message: "Booking ID missing" },
-    { status: 400 }
-  );
-}
+    if (!bookingId) {
+      return NextResponse.json(
+        { message: "Booking ID missing" },
+        { status: 400 }
+      );
+    }
 
-    
-
-    // 1. Check ownership + existence
     const booking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
@@ -160,7 +160,6 @@ if (!bookingId) {
       );
     }
 
-    // 2. Prevent double cancellation
     if (booking.status === "CANCELLED") {
       return NextResponse.json(
         { message: "Booking already cancelled" },
@@ -168,7 +167,6 @@ if (!bookingId) {
       );
     }
 
-    // 3. Cancel booking (soft delete)
     const updated = await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -176,9 +174,6 @@ if (!bookingId) {
       },
     });
 
-    /* -----------------------------
-       RESPONSE
-    ----------------------------- */
     return NextResponse.json(
       {
         message: "Booking cancelled successfully",
@@ -187,7 +182,6 @@ if (!bookingId) {
       },
       { status: 200 }
     );
-
   } catch (err: any) {
     if (
       err.message === "TOKEN_MISSING" ||
