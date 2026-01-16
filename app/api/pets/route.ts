@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
 import { createPetSchema } from "@/lib/validators/pet.schema";
@@ -102,7 +101,6 @@ export async function POST(req: Request) {
 
     const {
       name,
-      species,
       breed,
       gender,
       age,
