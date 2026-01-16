@@ -102,7 +102,6 @@ export async function POST(req: Request) {
 
     const {
       name,
-      species,
       breed,
       gender,
       age,
