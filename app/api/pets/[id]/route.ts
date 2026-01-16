@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { prisma } from "@/lib/prisma";
 import { verifyAccessToken } from "@/lib/auth";
 import { updatePetSchema } from "@/lib/validators/pet.schema";
@@ -46,7 +45,6 @@ export async function GET(
       select: {
         id: true,
         name: true,
-        species: true,
         breed: true,
         gender: true,
         age: true,
@@ -177,7 +175,6 @@ export async function PUT(
       select: {
         id: true,
         name: true,
-        species: true,
         breed: true,
         gender: true,
         age: true,

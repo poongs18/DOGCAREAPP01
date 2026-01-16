@@ -15,21 +15,25 @@ export async function GET(req: Request) {
     }
 
     const services = await prisma.service.findMany({
+  select: {
+    id: true,
+    name: true,
+    type: true,
+    status: true,
+    createdAt: true,
+    updatedAt: true,
+    variants: {
       select: {
         id: true,
         name: true,
-        description: true,
         price: true,
         durationMin: true,
-        type: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        isActive: true,
+      }
+    }
+  },
+  orderBy: { createdAt: "desc" }
+});
 
     return NextResponse.json(
       { services },
